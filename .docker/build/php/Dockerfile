@@ -1,0 +1,10 @@
+ARG php_version
+
+FROM php:${php_version}
+
+RUN apt-get -y update
+RUN curl -L -C - --progress-bar -o /usr/local/bin/composer https://getcomposer.org/composer.phar
+RUN chmod 755 /usr/local/bin/composer
+RUN apt-get install -y git zip unzip
+RUN a2enmod rewrite
+RUN echo "date.timezone=UTC" >> /usr/local/etc/php/conf.d/timezone.ini

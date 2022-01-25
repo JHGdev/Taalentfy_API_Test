@@ -1,0 +1,30 @@
+version: "3"
+
+services:
+  php:
+    build:
+      context: ./build/php
+      args:
+        php_version: ${PHP_VERSION}
+    container_name: ${COMPOSE_PROJECT_NAME}-php${PHP_VERSION}
+    ports:
+      - "${PHP_PORT}:80"
+    volumes:
+      - ../:/var/www/html
+      - ./build/logs:/var/log/apache2
+      - ./build/apache/virtualhost.conf:/etc/apache2/sites-enabled/000-default.conf
+    extra_hosts:
+      - "${PHP_HOST}:127.0.0.1"      
+  mysql:
+    image: mysql:latest
+    ports:
+      - "${DB_PORT}:3306"
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+  # volumes:
+  #   - my-data:/var/lib/mysql
+  #   - ./database/database.sql:/docker-entrypoint-initdb.d/database.sql
