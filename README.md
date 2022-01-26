@@ -13,3 +13,6 @@ make create-docker
 
 ############3
 Se instala annotations, recomendado por syumfony para asociar las rutas a los controladores
+Instalamos monolog para registro de acciones
+
+composer require logger
