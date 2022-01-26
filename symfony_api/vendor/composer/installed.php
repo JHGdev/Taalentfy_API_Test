@@ -1,15 +1,42 @@
 <?php return array(
     'root' => array(
-        'pretty_version' => 'v5.4.99',
-        'version' => '5.4.99.0',
+        'pretty_version' => 'dev-develop',
+        'version' => 'dev-develop',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => NULL,
-        'name' => 'symfony/skeleton',
+        'reference' => '65dce5aaccd22c297be032d505b7f8234e4979f3',
+        'name' => '__root__',
         'dev' => true,
     ),
     'versions' => array(
+        '__root__' => array(
+            'pretty_version' => 'dev-develop',
+            'version' => 'dev-develop',
+            'type' => 'project',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'reference' => '65dce5aaccd22c297be032d505b7f8234e4979f3',
+            'dev_requirement' => false,
+        ),
+        'doctrine/annotations' => array(
+            'pretty_version' => '1.13.2',
+            'version' => '1.13.2.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../doctrine/annotations',
+            'aliases' => array(),
+            'reference' => '5b668aef16090008790395c02c893b1ba13f7e08',
+            'dev_requirement' => false,
+        ),
+        'doctrine/lexer' => array(
+            'pretty_version' => '1.2.2',
+            'version' => '1.2.2.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../doctrine/lexer',
+            'aliases' => array(),
+            'reference' => '9c50f840f257bbb941e6f4a0e94ccf5db5c3f76c',
+            'dev_requirement' => false,
+        ),
         'psr/cache' => array(
             'pretty_version' => '1.0.1',
             'version' => '1.0.1.0',
@@ -75,6 +102,15 @@
             'provided' => array(
                 0 => '1.0|2.0',
             ),
+        ),
+        'sensio/framework-extra-bundle' => array(
+            'pretty_version' => 'v6.2.6',
+            'version' => '6.2.6.0',
+            'type' => 'symfony-bundle',
+            'install_path' => __DIR__ . '/../sensio/framework-extra-bundle',
+            'aliases' => array(),
+            'reference' => '6bd976c99ef3f78e31c9490a10ba6dd8901076eb',
+            'dev_requirement' => false,
         ),
         'symfony/cache' => array(
             'pretty_version' => 'v5.4.2',
@@ -336,15 +372,6 @@
             'provided' => array(
                 0 => '1.0|2.0',
             ),
-        ),
-        'symfony/skeleton' => array(
-            'pretty_version' => 'v5.4.99',
-            'version' => '5.4.99.0',
-            'type' => 'project',
-            'install_path' => __DIR__ . '/../../',
-            'aliases' => array(),
-            'reference' => NULL,
-            'dev_requirement' => false,
         ),
         'symfony/string' => array(
             'pretty_version' => 'v5.4.2',
