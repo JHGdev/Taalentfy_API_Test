@@ -11,3 +11,5 @@ RUN apt-get install -y git zip unzip
 RUN apt-get install -y symfony-cli
 RUN a2enmod rewrite
 RUN echo "date.timezone=UTC" >> /usr/local/etc/php/conf.d/timezone.ini
+RUN git config --global user.email "prueba_taalentfy@example.com"
+RUN git config --global user.name  "Prueba taalentfy"

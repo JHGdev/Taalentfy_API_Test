@@ -6,7 +6,7 @@ services:
       context: ./build/mysql
       args:
         db_version: ${DB_VERSION}
-    container_name: ${COMPOSE_PROJECT_NAME}-mariadb${DB_VERSION}
+    container_name: ${COMPOSE_PROJECT_NAME}-mysql.${DB_VERSION}
     environment:
       - MYSQL_ALLOW_EMPTY_PASSWORD="yes"
       - MYSQL_USER=${DB_USER}
