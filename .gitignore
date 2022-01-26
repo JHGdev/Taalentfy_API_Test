@@ -19,7 +19,7 @@ symfony_api/var/sessions/*
 !var/sessions/.gitkeep
 
 # Logs (Symfony4)
-/var/log/*
+symfony_api/var/log/*
 !var/log/.gitkeep
 
 # Parameters
