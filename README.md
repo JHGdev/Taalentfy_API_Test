@@ -27,5 +27,12 @@ Instalamos maker-bundle para facilitar la creacion de nuestras entidades de la b
     composer require --dev symfony/maker-bundle 
 
 
-????
-composer require --dev symfony/maker-bundle
+Creamos las entidades
+    bin/console make:entity
+    Agregado tipo "timestamp" para los campos de fecha en /symfony_api/src/entity/User.php
+
+Creamos archivos de migracion
+    bin/console make:migration
+
+Aplicamos para crear las tablas de la base de datos
+    bin/console doctrine:migrations:migrate
