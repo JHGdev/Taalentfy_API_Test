@@ -1,0 +1,15 @@
+App\Entity\User:
+  attributes:
+    email:
+      groups: ['user']
+    id:
+      groups: ['user']
+    firstname:
+      groups: ['user']
+    lastname:
+      groups: ['user']
+    birthd_date:
+      groups: ['user']
+    created:
+      groups: ['user']
+    

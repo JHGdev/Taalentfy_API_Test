@@ -12,7 +12,7 @@ make create-docker
 
 
 
-############3
+############
 
 Se instala annotations, recomendado por syumfony para asociar las rutas a los controladores
     composer require annotations
@@ -36,3 +36,19 @@ Creamos archivos de migracion
 
 Aplicamos para crear las tablas de la base de datos
     bin/console doctrine:migrations:migrate
+
+
+Instalamos rest-bundle para facilitar el manejo de la api-rest
+    composer require friendsofsymfony/rest-bundle
+
+Instalamos un serializer necesario para rest-bundle
+    composer require symfony/serializer-pack
+
+Configuramos
+/symfony_api/config/packages/fos_rest.yaml
+/symfony_api/config/routes/api.yaml
+/symfony_api/config/serializer/Entity/User.yaml
+/symfony_api/config/packages/framework.yaml
+
+Agregamos Validator y dependencias
+    composer require symfony/validator twig doctrine/annotations
