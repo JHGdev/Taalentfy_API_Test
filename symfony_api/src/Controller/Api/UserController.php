@@ -6,6 +6,7 @@ use App\Entity\KnowledgeAssignments;
 use App\Entity\LaboralSector;
 use App\Entity\LaboralSectorAssignments;
 use App\Entity\User;
+use App\Form\Type\UserFormType;
 use App\Repository\KnowledgeRepository;
 use App\Repository\LaboralSectorRepository;
 use App\Repository\UserRepository;
@@ -47,46 +48,76 @@ class UserController extends AbstractFOSRestController
                                 KnowledgeRepository $knowledge_repository,
                                 ValidatorInterface $validator)
     {
-        $email = $request->get('email', '');
-        $firstname = $request->get('firstname', '');
-        $lastname = $request->get('lastname', '');
-        $birth_date_input = $request->get('birth_date', '');
-        $laboral_sector = $request->get('laboral_sector', '');
-        $knowledge = $request->get('knowledge', '');
 
-       
-        $birth_date = new \DateTime();
-        if(is_numeric($birth_date_input))
-            $birth_date->setTimestamp($birth_date_input);
-        else
-            $birth_date->createFromFormat("Y-m-d H:i", $birth_date_input);
-            
         $user = new User;
-        $user->setEmail($email)
-             ->setFirstname($firstname)
-             ->setLastname($lastname)      
-             ->setBirthDate($birth_date);
+        $form = $this->createForm(UserFormType::class, $user);
         
+        //Indicamos al formulario que maneje la peticion
+        $form->handleRequest($request);
 
-        // Validamos los datos que se han introducido en la entidad
-        // Se usa annotations en /src/entity para establecr las reglas
-        $errors = $validator->validate($user);
+        if($form->isSubmitted() && $form->isValid()){
 
-
-        if (count($errors) > 0) {
-            $errorsString = (string) $errors;
-            return $errorsString;
-        }    
-            
-        
-        if (!empty($laboral_sector))
+            if (!empty($laboral_sector))
             $this->setUserLaboralSector($em, $laboralSectorRepository, $laboral_sector, $user);
 
-        if (!empty($knowledge))
-            $this->setUserKnowledge($em, $knowledge_repository, $knowledge, $user);
+            if (!empty($knowledge))
+                $this->setUserKnowledge($em, $knowledge_repository, $knowledge, $user);
 
-        $em->persist($user);
-        $em->flush();
+            $actual_date = new \DateTime('now');
+            $user->setCreated($actual_date->getTimestamp());
+
+            $em->persist($user);
+            $em->flush();
+            
+            return $user;
+
+            $this->logger->info('User created');
+
+            return $user;
+        }
+
+        return $form;
+
+
+        // $email = $request->get('email', '');
+        // $firstname = $request->get('firstname', '');
+        // $lastname = $request->get('lastname', '');
+        // $birth_date_input = $request->get('birth_date', '');
+        // $laboral_sector = $request->get('laboral_sector', '');
+        // $knowledge = $request->get('knowledge', '');
+
+       
+        // $birth_date = new \DateTime();
+        // if(is_numeric($birth_date_input))
+        //     $birth_date->setTimestamp($birth_date_input);
+        // else
+        //     $birth_date->createFromFormat("Y-m-d H:i", $birth_date_input);
+            
+        // $user = new User;
+        // $user->setEmail($email)
+        //      ->setFirstname($firstname)
+        //      ->setLastname($lastname)      
+        //      ->setBirthDate($birth_date);
+        
+
+        // // Validamos los datos que se han introducido en la entidad
+        // // Se usa annotations en /src/entity para establecr las reglas
+        // $errors = $validator->validate($user);
+
+        //  if (count($errors) > 0) {
+        //     $errorsString = (string) $errors;
+        //     return $errorsString;
+        // }    
+            
+        
+        // if (!empty($laboral_sector))
+        //     $this->setUserLaboralSector($em, $laboralSectorRepository, $laboral_sector, $user);
+
+        // if (!empty($knowledge))
+        //     $this->setUserKnowledge($em, $knowledge_repository, $knowledge, $user);
+
+        // $em->persist($user);
+        // $em->flush();
 
         $this->logger->info('User created');
 

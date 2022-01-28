@@ -52,3 +52,19 @@ Configuramos
 
 Agregamos Validator y dependencias
     composer require symfony/validator twig doctrine/annotations
+
+Agregamos formularios para facilitar el manejo de los datos de entrada y la salida de la validacion
+    composer require symfony/form
+
+
+Ejecutando bin/console doctrine:schema:update --dump-sql, veo que o se habian aplicado los cambios del timestamp
+---
+Actualizo migrations
+ bin/console doctrine:migrations:diff
+Aplico migrations
+    bin/console doctrine:migrations:migrate
+--- 
+    Aplico a mano el down de /migrations/Version20220128200147.php
+    No lo aplicaba el comando "bin/console doctrine:migrations:execute --down 'DoctrineMigrations\\Version20220128200147'"
+
+Modifico base de datos para establecer fechas como bigint

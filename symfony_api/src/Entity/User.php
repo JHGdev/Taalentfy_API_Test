@@ -51,7 +51,7 @@ class User
     private $lastname;
 
     /**
-     * @ORM\Column(type="datetime", columnDefinition="TIMESTAMP")
+     * @ORM\Column(type="bigint", columnDefinition="BIGINT")
      * @Assert\NotNull
      * @Assert\NotBlank(
      *     message = "The birth date cannot be blank."
@@ -60,7 +60,7 @@ class User
     private $birth_date;
 
     /**
-     * @ORM\Column(type="datetime", columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+     * @ORM\Column(type="bigint", columnDefinition="BIGINT")
      */
     private $created;
 
@@ -120,24 +120,24 @@ class User
         return $this;
     }
 
-    public function getBirthDate(): ?\DateTimeInterface
+    public function getBirthDate(): ?int
     {
         return $this->birth_date;
     }
 
-    public function setBirthDate(\DateTimeInterface $birth_date): self
+    public function setBirthDate(int $birth_date): self
     {
         $this->birth_date = $birth_date;
 
         return $this;
     }
 
-    public function getCreated(): ?\DateTimeInterface
+    public function getCreated(): ?int
     {
         return $this->created;
     }
 
-    public function setCreated(\DateTimeInterface $created): self
+    public function setCreated(int $created): self
     {
         $this->created = $created;
 
