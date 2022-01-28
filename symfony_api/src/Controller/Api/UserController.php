@@ -15,7 +15,6 @@ use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserController extends AbstractFOSRestController
 {
@@ -45,24 +44,28 @@ class UserController extends AbstractFOSRestController
     public function postAction( Request $request, 
                                 EntityManagerInterface $em, 
                                 LaboralSectorRepository $laboralSectorRepository, 
-                                KnowledgeRepository $knowledge_repository,
-                                ValidatorInterface $validator)
+                                KnowledgeRepository $knowledge_repository)
     {
+        $form = $request->get('user_form', '');
+        $knowledge = $form['knowledge'];
+        $laboral_sector = $form['laboral_sector'];
 
+        
         $user = new User;
         $form = $this->createForm(UserFormType::class, $user);
         
         //Indicamos al formulario que maneje la peticion
         $form->handleRequest($request);
-
+        
         if($form->isSubmitted() && $form->isValid()){
-
+            
             if (!empty($laboral_sector))
-            $this->setUserLaboralSector($em, $laboralSectorRepository, $laboral_sector, $user);
-
+                $this->setUserLaboralSector($em, $laboralSectorRepository, $laboral_sector, $user);
+            
+            
             if (!empty($knowledge))
                 $this->setUserKnowledge($em, $knowledge_repository, $knowledge, $user);
-
+            
             $actual_date = new \DateTime('now');
             $user->setCreated($actual_date->getTimestamp());
 
@@ -137,8 +140,8 @@ class UserController extends AbstractFOSRestController
             $knowledge = $knowledge_repository->findOneBy($query);
 
             if (!$knowledge){
-                $resultado = new Knowledge();
-                $resultado->setName($user_knowledge_name);
+                $knowledge = new Knowledge();
+                $knowledge->setName($user_knowledge_name);
 
                 $em->persist($knowledge);
             }

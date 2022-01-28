@@ -68,3 +68,12 @@ Aplico migrations
     No lo aplicaba el comando "bin/console doctrine:migrations:execute --down 'DoctrineMigrations\\Version20220128200147'"
 
 Modifico base de datos para establecer fechas como bigint
+
+
+Al hacer las relaciones de la entidad Offer se han borrado las de User
+He tenido que hacer consultas en la base de datos
+    ALTER TABLE laboral_sector_assignments ADD laboral_sector_id_id INT NOT NULL;
+    ALTER TABLE laboral_sector_assignments ADD CONSTRAINT FK_B0A5662FE06A9B8F FOREIGN KEY (laboral_sector_id_id) REFERENCES laboral_sector (id);
+    CREATE INDEX IDX_B0A5662FE06A9B8F ON laboral_sector_assignments (laboral_sector_id_id);
+
+Lo he agregado al ultimo archivo migrations

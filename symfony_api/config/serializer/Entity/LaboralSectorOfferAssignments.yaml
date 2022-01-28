@@ -1,0 +1,8 @@
+App\Entity\LaboralSectorOfferAssignments:
+  attributes:
+    id:
+      groups: ['offer']
+    laboral_sector_id:
+      groups: ['offer']
+
+    

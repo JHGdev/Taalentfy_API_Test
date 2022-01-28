@@ -31,6 +31,9 @@ final class Version20220128220515 extends AbstractMigration
         $this->addSql('DROP INDEX IDX_B0A5662FE06A9B8F ON laboral_sector_assignments');
         $this->addSql('ALTER TABLE laboral_sector_assignments DROP laboral_sector_id_id');
         $this->addSql('ALTER TABLE user CHANGE birth_date birth_date BIGINT, CHANGE created created BIGINT');
+        $this->addSql('ALTER TABLE laboral_sector_assignments ADD laboral_sector_id_id INT NOT NULL;');
+        $this->addSql('ALTER TABLE laboral_sector_assignments ADD CONSTRAINT FK_B0A5662FE06A9B8F FOREIGN KEY (laboral_sector_id_id) REFERENCES laboral_sector (id);');
+        $this->addSql('CREATE INDEX IDX_B0A5662FE06A9B8F ON laboral_sector_assignments (laboral_sector_id_id);');
     }
 
     public function down(Schema $schema): void

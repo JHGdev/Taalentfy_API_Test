@@ -1,4 +1,4 @@
-App\Entity\Knowledge:
+App\Entity\LaboralSector:
   attributes:
     id:
       groups: ['user', 'offer']

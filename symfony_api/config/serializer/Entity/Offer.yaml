@@ -1,0 +1,18 @@
+App\Entity\Offer:
+  attributes:
+    id:
+      groups: ['offer']
+    title:
+      groups: ['offer']
+    description:
+      groups: ['offer']
+    status:
+      groups: ['offer']
+    incorporation_date:
+      groups: ['offer']
+    knowledgeOfferAssignments:
+      groups: ['offer']
+    laboralSectorOfferAssignments:
+      groups: ['offer']
+
+    

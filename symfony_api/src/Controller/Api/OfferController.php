@@ -3,11 +3,10 @@ namespace App\Controller\Api;
 
 use App\Entity\Offer;
 use App\Entity\Knowledge;
-use App\Entity\KnowledgeAssignments;
 use App\Entity\KnowledgeOfferAssignments;
 use App\Entity\LaboralSector;
-use App\Entity\LaboralSectorAssignments;
 use App\Entity\LaboralSectorOfferAssignments;
+use App\Form\Type\OfferFormType;
 use App\Repository\KnowledgeRepository;
 use App\Repository\LaboralSectorRepository;
 use App\Repository\OfferRepository;
@@ -48,21 +47,26 @@ class OfferController extends AbstractFOSRestController
                                 LaboralSectorRepository $laboralSectorRepository, 
                                 KnowledgeRepository $knowledge_repository)
     {
-
+        $form = $request->get('offer_form', '');
+        $knowledge = $form['knowledge'];
+        $laboral_sector = $form['laboral_sector'];
+        
         $offer = new Offer;
         $form = $this->createForm(OfferFormType::class, $offer);
         
         //Indicamos al formulario que maneje la peticion
         $form->handleRequest($request);
-
+        
         if($form->isSubmitted() && $form->isValid()){
-
+            
+            
             if (!empty($laboral_sector))
                 $this->setOfferLaboralSector($em, $laboralSectorRepository, $laboral_sector, $offer);
-
+            
+                
             if (!empty($knowledge))
                 $this->setOfferKnowledge($em, $knowledge_repository, $knowledge, $offer);
-
+                
             $em->persist($offer);
             $em->flush();
             
@@ -88,8 +92,8 @@ class OfferController extends AbstractFOSRestController
             $knowledge = $knowledge_repository->findOneBy($query);
 
             if (!$knowledge){
-                $resultado = new Knowledge();
-                $resultado->setName($user_knowledge_name);
+                $knowledge = new Knowledge();
+                $knowledge->setName($user_knowledge_name);
 
                 $em->persist($knowledge);
             }

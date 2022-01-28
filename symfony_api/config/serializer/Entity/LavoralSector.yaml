@@ -1,6 +1,0 @@
-App\Entity\LaboralSector:
-  attributes:
-    id:
-      groups: ['user']
-    name:
-      groups: ['user']    

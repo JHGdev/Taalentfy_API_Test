@@ -1,6 +1,6 @@
 <?php
 
-// src/Form/Type/UserFormType.php
+// src/Form/Type/OfferFormType.php
 namespace App\Form\Type;
 
 use App\Entity\Offer;
