@@ -14,6 +14,7 @@ use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserController extends AbstractFOSRestController
 {
@@ -40,91 +41,107 @@ class UserController extends AbstractFOSRestController
      * @Rest\Post(path="/users")
      * @Rest\View(serializerGroups={"user"},serializerEnableMaxDepthChecks=true)
      */
-    public function postAction(Request $request, EntityManagerInterface $em, LaboralSectorRepository $laboralSectorRepository, KnowledgeRepository $knowledge_repository)
+    public function postAction( Request $request, 
+                                EntityManagerInterface $em, 
+                                LaboralSectorRepository $laboralSectorRepository, 
+                                KnowledgeRepository $knowledge_repository,
+                                ValidatorInterface $validator)
     {
-        $email = $request->get('email', null);
-        $firstname = $request->get('firstname', null);
-        $lastname = $request->get('lastname', null);
-        $birth_date_timestamp = $request->get('birth_date', null);
-        $laboral_sector = $request->get('laboral_sector', null);
-        $knowledge = $request->get('knowledge', null);
+        $email = $request->get('email', '');
+        $firstname = $request->get('firstname', '');
+        $lastname = $request->get('lastname', '');
+        $birth_date_input = $request->get('birth_date', '');
+        $laboral_sector = $request->get('laboral_sector', '');
+        $knowledge = $request->get('knowledge', '');
 
-        $error_messages = $this->checkDataInputCreate($email, $firstname, $lastname, $birth_date_timestamp);
-
-        if (!empty($error_messages)){
-            return null;
-        }
-
-        $birth_date = new \DateTime(); 
-        $birth_date->setTimestamp($birth_date_timestamp);
-
+       
+        $birth_date = new \DateTime();
+        if(is_numeric($birth_date_input))
+            $birth_date->setTimestamp($birth_date_input);
+        else
+            $birth_date->createFromFormat("Y-m-d H:i", $birth_date_input);
+            
         $user = new User;
         $user->setEmail($email)
              ->setFirstname($firstname)
              ->setLastname($lastname)      
              ->setBirthDate($birth_date);
         
+
+        // Validamos los datos que se han introducido en la entidad
+        // Se usa annotations en /src/entity para establecr las reglas
+        $errors = $validator->validate($user);
+
+
+        if (count($errors) > 0) {
+            $errorsString = (string) $errors;
+            return $errorsString;
+        }    
+            
+        
+        if (!empty($laboral_sector))
+            $this->setUserLaboralSector($em, $laboralSectorRepository, $laboral_sector, $user);
+
+        if (!empty($knowledge))
+            $this->setUserKnowledge($em, $knowledge_repository, $knowledge, $user);
+
         $em->persist($user);
-
-        if (!empty($laboral_sector)){
-            
-            $query = ['name' => $laboral_sector];
-            if ($resultado = $laboralSectorRepository->findOneBy($query)){
-                $laboralSectorAssignment = new LaboralSectorAssignments();
-                $laboralSectorAssignment->setUserId($user)
-                                        ->setLaboralSectorId($resultado);
-                
-                $em->persist($laboralSectorAssignment);
-            }else{
-                $laboral_sector_new = new LaboralSector();
-                $laboral_sector_new->setName($laboral_sector);
-
-                $em->persist($laboral_sector_new);
-
-                $laboralSectorAssignment = new LaboralSectorAssignments();
-                $laboralSectorAssignment->setUserId($user)
-                                        ->setLaboralSectorId($laboral_sector_new);
-                
-                $em->persist($laboralSectorAssignment);
-            }
-        }
-
-
-        if (!empty($knowledge)){
-            
-            $knowledge_array = explode(',', $knowledge);
-
-            foreach($knowledge_array as $user_knowledge_name){
-             
-                $query = ['name' => $user_knowledge_name];
-                if ($resultado = $knowledge_repository->findOneBy($query)){
-                    $knowledgeAssignment = new KnowledgeAssignments();
-                    $knowledgeAssignment->setUserId($user)
-                                            ->setKnowledgeId($resultado);
-                    
-                    $em->persist($knowledgeAssignment);
-                }else{
-                    $knowledge_new = new Knowledge();
-                    $knowledge_new->setName($user_knowledge_name);
-
-                    $em->persist($knowledge_new);
-
-                    $knowledgeAssignment = new KnowledgeAssignments();
-                    $knowledgeAssignment->setUserId($user)
-                                        ->setKnowledgeId($knowledge_new);
-                    
-                    $em->persist($knowledgeAssignment);
-                }
-            }
-        }
-
-
         $em->flush();
 
         $this->logger->info('User created');
 
         return $user;
     }
+
+
+
+    private function setUserKnowledge(EntityManagerInterface $em, KnowledgeRepository $knowledge_repository, $knowledge_names, $user){
+    
+        $knowledge_array = explode(',', $knowledge_names);
+
+        foreach($knowledge_array as $user_knowledge_name){
+         
+            $query = ['name' => $user_knowledge_name];
+
+            $knowledge = $knowledge_repository->findOneBy($query);
+
+            if (!$knowledge){
+                $resultado = new Knowledge();
+                $resultado->setName($user_knowledge_name);
+
+                $em->persist($knowledge);
+            }
+
+            $knowledgeAssignment = new KnowledgeAssignments();
+            $knowledgeAssignment->setUserId($user)
+                                    ->setKnowledgeId($knowledge);
+            
+            $em->persist($knowledgeAssignment);
+
+        }
+    }
+
+
+    private function setUserLaboralSector(EntityManagerInterface $em, LaboralSectorRepository $laboralSectorRepository, $laboral_sector_name, $user){
+       
+        $query = ['name' => $laboral_sector_name];
+       
+        $laboral_sector = $laboralSectorRepository->findOneBy($query);
+
+        if (!$laboral_sector){
+            $laboral_sector = new LaboralSector();
+            $laboral_sector->setName($laboral_sector_name);
+
+            $em->persist($laboral_sector);
+        }
+
+        $laboralSectorAssignment = new LaboralSectorAssignments();
+        $laboralSectorAssignment->setUserId($user)
+                                ->setLaboralSectorId($laboral_sector);
+        
+        $em->persist($laboralSectorAssignment);
+    }
+
 
     /**
      * Chequea que no haya valores nulos 
