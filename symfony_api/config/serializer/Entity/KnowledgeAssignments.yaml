@@ -1,0 +1,8 @@
+App\Entity\KnowledgeAssignments:
+  attributes:
+    id:
+      groups: ['user']
+    knowledge_id:
+      groups: ['user']
+
+    

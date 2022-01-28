@@ -1,0 +1,8 @@
+App\Entity\LaboralSectorAssignments:
+  attributes:
+    id:
+      groups: ['user']
+    laboral_sector_id:
+      groups: ['user']
+
+    
