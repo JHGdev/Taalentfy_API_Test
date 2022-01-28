@@ -29,9 +29,15 @@ class LaboralSector
      */
     private $yes;
 
-    public function __construct()
+    /**
+     * @ORM\OneToMany(targetEntity=LaboralSectorOfferAssignments::class, mappedBy="laboral_sector_id")
+     */
+    private $laboralSectorOfferAssignments;
+
+      public function __construct()
     {
         $this->yes = new ArrayCollection();
+        $this->laboralSectorOfferAssignments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -75,6 +81,36 @@ class LaboralSector
             // set the owning side to null (unless already changed)
             if ($ye->getLaboralSectorId() === $this) {
                 $ye->setLaboralSectorId(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|LaboralSectorOfferAssignments[]
+     */
+    public function getLaboralSectorOfferAssignments(): Collection
+    {
+        return $this->laboralSectorOfferAssignments;
+    }
+
+    public function addLaboralSectorOfferAssignment(LaboralSectorOfferAssignments $laboralSectorOfferAssignment): self
+    {
+        if (!$this->laboralSectorOfferAssignments->contains($laboralSectorOfferAssignment)) {
+            $this->laboralSectorOfferAssignments[] = $laboralSectorOfferAssignment;
+            $laboralSectorOfferAssignment->setLaboralSectorId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLaboralSectorOfferAssignment(LaboralSectorOfferAssignments $laboralSectorOfferAssignment): self
+    {
+        if ($this->laboralSectorOfferAssignments->removeElement($laboralSectorOfferAssignment)) {
+            // set the owning side to null (unless already changed)
+            if ($laboralSectorOfferAssignment->getLaboralSectorId() === $this) {
+                $laboralSectorOfferAssignment->setLaboralSectorId(null);
             }
         }
 

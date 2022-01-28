@@ -29,9 +29,15 @@ class Knowledge
      */
     private $knowledgeAssignments;
 
+    /**
+     * @ORM\OneToMany(targetEntity=KnowledgeOfferAssignments::class, mappedBy="knowledge_id")
+     */
+    private $knowledgeOfferAssignments;
+
     public function __construct()
     {
         $this->knowledgeAssignments = new ArrayCollection();
+        $this->knowledgeOfferAssignments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -75,6 +81,36 @@ class Knowledge
             // set the owning side to null (unless already changed)
             if ($knowledgeAssignment->getKnowledgeId() === $this) {
                 $knowledgeAssignment->setKnowledgeId(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|KnowledgeOfferAssignments[]
+     */
+    public function getKnowledgeOfferAssignments(): Collection
+    {
+        return $this->knowledgeOfferAssignments;
+    }
+
+    public function addKnowledgeOfferAssignment(KnowledgeOfferAssignments $knowledgeOfferAssignment): self
+    {
+        if (!$this->knowledgeOfferAssignments->contains($knowledgeOfferAssignment)) {
+            $this->knowledgeOfferAssignments[] = $knowledgeOfferAssignment;
+            $knowledgeOfferAssignment->setKnowledgeId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeKnowledgeOfferAssignment(KnowledgeOfferAssignments $knowledgeOfferAssignment): self
+    {
+        if ($this->knowledgeOfferAssignments->removeElement($knowledgeOfferAssignment)) {
+            // set the owning side to null (unless already changed)
+            if ($knowledgeOfferAssignment->getKnowledgeId() === $this) {
+                $knowledgeOfferAssignment->setKnowledgeId(null);
             }
         }
 
