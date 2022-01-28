@@ -6,6 +6,7 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
@@ -21,21 +22,40 @@ class User
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\Email(
+     *     message = "The email '{{ value }}' is not a valid email."
+     * )
+     * @Assert\NotNull
+     * @Assert\NotBlank(
+     *     message = "The email cannot be blank."
+     * )
      */
     private $email;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotNull
+     * @Assert\NotBlank(
+     *     message = "The fisrtname cannot be blank."
+     * )
      */
     private $firstname;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotNull
+     * @Assert\NotBlank(
+     *     message = "The firstname cannot be blank."
+     * )
      */
     private $lastname;
 
     /**
      * @ORM\Column(type="datetime", columnDefinition="TIMESTAMP")
+     * @Assert\NotNull
+     * @Assert\NotBlank(
+     *     message = "The birth date cannot be blank."
+     * )
      */
     private $birth_date;
 
