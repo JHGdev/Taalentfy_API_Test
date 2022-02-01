@@ -23,33 +23,45 @@ class OfferController extends AbstractFOSRestController
 {
 
     private $logger; 
+    private $em; 
     
-    public function __construct(LoggerInterface $logger){
+    public function __construct(LoggerInterface $logger, EntityManagerInterface $em, LaboralSectorRepository $laboralSectorRepository, KnowledgeRepository $knowledge_repository){
         
         $this->logger = $logger;
+        $this->em = $em;
+        $this->laboralSectorRepository = $laboralSectorRepository;
+        $this->knowledge_repository = $knowledge_repository;
     }
-
 
     /**
     * @Rest\Get(path="/offers")
     * @Rest\View(serializerGroups={"offer"},serializerEnableMaxDepthChecks=true)
     */
-    public function getAction(OfferRepository $userRepository)
+    public function getAction(OfferRepository $offerRepository)
     {
         $this->logger->info('Users listed');
-        return $userRepository->findAll();
+        $offers = $offerRepository->findAll();
+        
+        if (empty($offers))
+            return $this->sendResponse(204, null, null);
+
+        return $offers;
     }
 
+    // TODO Eliminar todas las variables innecesarias de las definiciones de las funciones
     /**
      * @Rest\Post(path="/offers")
      * @Rest\View(serializerGroups={"offer"},serializerEnableMaxDepthChecks=true)
      */
-    public function postAction( Request $request, 
-                                EntityManagerInterface $em, 
-                                LaboralSectorRepository $laboralSectorRepository, 
-                                KnowledgeRepository $knowledge_repository)
-    {
+    public function postAction(Request $request){
+
         $form = $request->get('offer_form', '');
+        return $this->createOfferFromFormData($form, $request);
+    }
+
+
+    private function createOfferFromFormData($form, $request){
+
         $knowledge = $form['knowledge'];
         $laboral_sector = $form['laboral_sector'];
         $test_a_criteria = $form['test_a_criteria'];
@@ -64,24 +76,26 @@ class OfferController extends AbstractFOSRestController
         if($form->isSubmitted() && $form->isValid()){
             
             if (!empty($laboral_sector))
-                $this->setOfferLaboralSector($em, $laboralSectorRepository, $laboral_sector, $offer);
+                $this->setOfferLaboralSector($this->em, $this->laboralSectorRepository, $laboral_sector, $offer);
                 
             if (!empty($knowledge)){
-                $res = $this->setOfferKnowledge($em, $knowledge_repository, $knowledge, $offer);
+                $res = $this->setOfferKnowledge($this->em, $this->knowledge_repository, $knowledge, $offer);
                 if ($res === false)
                     return $this->sendResponse(400, null, 'Bad knowledges field request');
             }
 
             if (!empty($test_a_criteria))
-                $res = $this->setOfferTestACriteria($em, $test_a_criteria, $offer);
+                $this->setOfferTestACriteria($this->em, $test_a_criteria, $offer);
                 
-            if (!empty($test_b_criteria))
-                $res = $this->setOfferTestBCriteria($em, $test_b_criteria, $offer);
+            if (!empty($test_b_criteria)){
+                $res = $this->setOfferTestBCriteria($this->em, $test_b_criteria, $offer);
+                if ($res === false)
+                    return $this->sendResponse(400, null, 'Bad Test B answers field request');
+            }
 
 
-
-            $em->persist($offer);
-            $em->flush();
+            $this->em->persist($offer);
+            $this->em->flush();
             
             $this->logger->info('Offer created');
             return $this->sendResponse(201, $offer->getId(), 'Offer created');
@@ -91,6 +105,66 @@ class OfferController extends AbstractFOSRestController
         return $form;
 
     }
+
+
+
+   public function createMassiveOffers($offers_data){
+
+
+        $data = [];
+        foreach ($offers_data as $offer_data){
+            $data[] = [
+                        'offer'  => $offer_data['title'],
+                        'result' => $this->createOfferFromJsonData($offer_data)
+            ];
+        }
+        return $this->sendResponse(200, 'Offers imported', $data);
+    }
+
+
+
+    private function createOfferFromJsonData($offer_data){
+        
+        $knowledge = $offer_data['knowledge'];
+        $laboral_sector = $offer_data['laboral_sector'];
+        $test_a_criteria = $offer_data['test_a_criteria'];
+        $test_b_criteria = $offer_data['test_b_criteria'];
+        
+        $offer = new Offer;
+        $offer->setTitle($offer_data['title']);
+        $offer->setDescription($offer_data['description']);
+        $offer->setIncorporationDate($offer_data['incorporation_date']);
+        $offer->setStatus($offer_data['status']);
+
+        
+        if (!empty($laboral_sector))
+            $this->setOfferLaboralSector($this->em, $this->laboralSectorRepository, $laboral_sector, $offer);
+            
+        if (!empty($knowledge)){
+            $res = $this->setOfferKnowledge($this->em, $this->knowledge_repository, $knowledge, $offer);
+            if ($res === false)
+                return 'Bad knowledges field request';
+        }
+
+        if (!empty($test_a_criteria))
+            $this->setOfferTestACriteria($this->em, $test_a_criteria, $offer);
+            
+        if (!empty($test_b_criteria)){
+            $res = $this->setOfferTestBCriteria($this->em, $test_b_criteria, $offer);
+            if ($res === false)
+                return 'Bad Test B answers field request';
+        }
+
+
+        $this->em->persist($offer);
+        $this->em->flush();
+        
+        $this->logger->info('Offer created');
+        return 'Offer created';
+
+    }
+
+
 
 
     /**
@@ -187,6 +261,10 @@ class OfferController extends AbstractFOSRestController
      */
     private function setOfferTestBCriteria(EntityManagerInterface $em, $criteria_values, $offer){
         $test_b_criteria = new OfferCriteriaTestB();
+       
+        if (count($criteria_values) != 3 || ($criteria_values[0] + $criteria_values[1] + $criteria_values[2]) != 100)
+            return false;
+
         $test_b_criteria->setDesiredPercentA($criteria_values[0]);
         $test_b_criteria->setDesiredPercentB($criteria_values[1]);
         $test_b_criteria->setDesiredPercentC($criteria_values[2]);

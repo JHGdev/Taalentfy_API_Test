@@ -23,10 +23,16 @@ class UserController extends AbstractFOSRestController
 {
 
     private $logger; 
+    private $em; 
+    private $laboralSectorRepository; 
+    private $knowledge_repository; 
     
-    public function __construct(LoggerInterface $logger){
+    public function __construct(LoggerInterface $logger, EntityManagerInterface $em, LaboralSectorRepository $laboralSectorRepository, KnowledgeRepository $knowledge_repository){
         
         $this->logger = $logger;
+        $this->em = $em;
+        $this->laboralSectorRepository = $laboralSectorRepository;
+        $this->knowledge_repository = $knowledge_repository;
     }
 
 
@@ -37,7 +43,12 @@ class UserController extends AbstractFOSRestController
     public function getAction(UserRepository $userRepository)
     {
         $this->logger->info('Users listed');
-        return $userRepository->findAll();
+        $users = $userRepository->findAll();
+
+        if (empty($users))
+            return $this->sendResponse(204, null, null);
+
+        return $users;
     }
 
     /**
@@ -47,9 +58,20 @@ class UserController extends AbstractFOSRestController
     public function postAction( Request $request, 
                                 EntityManagerInterface $em, 
                                 LaboralSectorRepository $laboralSectorRepository, 
-                                KnowledgeRepository $knowledge_repository)
-    {
+                                KnowledgeRepository $knowledge_repository){
+        
         $form = $request->get('user_form', '');
+        
+        return $this->createUserFromFormData($form, $request, $em, $laboralSectorRepository, $knowledge_repository);
+
+    }
+
+
+    private function createUserFromFormData($form,
+                                            Request $request, 
+                                            EntityManagerInterface $em, 
+                                            LaboralSectorRepository $laboralSectorRepository, 
+                                            KnowledgeRepository $knowledge_repository){
         $knowledge = $form['knowledge'];
         $laboral_sector = $form['laboral_sector'];
         $user_answers_test_a = $form['user_answers_test_a'];
@@ -66,16 +88,17 @@ class UserController extends AbstractFOSRestController
             if (!empty($laboral_sector))
                 $this->setUserLaboralSector($em, $laboralSectorRepository, $laboral_sector, $user);
             
-            
             if (!empty($knowledge))
                 $this->setUserKnowledge($em, $knowledge_repository, $knowledge, $user);
 
             if (!empty($user_answers_test_a))
                 $this->setUserAnswerTestA($em, $user_answers_test_a, $user);
 
-            if (!empty($user_answers_test_b))
-                if (!$this->setUserAnswersTestB($em, $user_answers_test_b, $user))
+            if (!empty($user_answers_test_b)){
+                $res = $this->setUserAnswersTestB($em, $user_answers_test_b, $user);
+                if ($res === false)
                     return $this->sendResponse(400, null, 'Bad Test B answers field request');
+            }
             
             $actual_date = new \DateTime('now');
             $user->setCreated($actual_date->getTimestamp());
@@ -88,53 +111,56 @@ class UserController extends AbstractFOSRestController
         }
 
         return $form;
-
-
-        // $email = $request->get('email', '');
-        // $firstname = $request->get('firstname', '');
-        // $lastname = $request->get('lastname', '');
-        // $birth_date_input = $request->get('birth_date', '');
-        // $laboral_sector = $request->get('laboral_sector', '');
-        // $knowledge = $request->get('knowledge', '');
-
-       
-        // $birth_date = new \DateTime();
-        // if(is_numeric($birth_date_input))
-        //     $birth_date->setTimestamp($birth_date_input);
-        // else
-        //     $birth_date->createFromFormat("Y-m-d H:i", $birth_date_input);
-            
-        // $user = new User;
-        // $user->setEmail($email)
-        //      ->setFirstname($firstname)
-        //      ->setLastname($lastname)      
-        //      ->setBirthDate($birth_date);
-        
-
-        // // Validamos los datos que se han introducido en la entidad
-        // // Se usa annotations en /src/entity para establecr las reglas
-        // $errors = $validator->validate($user);
-
-        //  if (count($errors) > 0) {
-        //     $errorsString = (string) $errors;
-        //     return $errorsString;
-        // }    
-            
-        
-        // if (!empty($laboral_sector))
-        //     $this->setUserLaboralSector($em, $laboralSectorRepository, $laboral_sector, $user);
-
-        // if (!empty($knowledge))
-        //     $this->setUserKnowledge($em, $knowledge_repository, $knowledge, $user);
-
-        // $em->persist($user);
-        // $em->flush();
-
-        $this->logger->info('User created');
-
-        return $user;
     }
 
+
+    public function createMassiveUsers($users_data){
+        $messages = [];
+        foreach ($users_data as $user_data){
+            $data[] = [
+                        'user'   => $user_data['email'],
+                        'result' => $this->createUserFromJsonData($user_data)
+            ];
+        }
+
+        //return $messages;
+        return $this->sendResponse(200, 'Users imported', $data);
+    }
+
+    private function createUserFromJsonData($user_data){
+
+        $user = new User;
+
+        $user->setEmail($user_data['email']);
+        $user->setFirstname($user_data['firstname']);
+        $user->setLastname($user_data['lastname']);
+        $user->setBirthDate($user_data['birth_date']);
+                                                
+        if (!empty($user_data['laboral_sector']))
+            $this->setUserLaboralSector($this->em, $this->laboralSectorRepository, $user_data['laboral_sector'], $user);
+
+        if (!empty($user_data['knowledge']))
+            $this->setUserKnowledge($this->em, $this->knowledge_repository, $user_data['knowledge'], $user);
+
+        if (!empty($user_data['user_answers_test_a']))
+            $this->setUserAnswerTestA($this->em, $user_data['user_answers_test_a'], $user);
+
+        if (!empty($user_data['user_answers_test_b'])){
+            $res = $this->setUserAnswersTestB($this->em, $user_data['user_answers_test_b'], $user);
+            if ($res === false)
+                return 'Bad Test B answers field request';
+        }
+
+        $actual_date = new \DateTime('now');
+        $user->setCreated($actual_date->getTimestamp());
+
+        $this->logger->info('User created by massive load');
+        $this->em->persist($user);
+        $this->em->flush();
+
+        return 'User created';
+        
+    }
 
 
     private function setUserKnowledge(EntityManagerInterface $em, KnowledgeRepository $knowledge_repository, $knowledge_names, $user){
@@ -154,7 +180,7 @@ class UserController extends AbstractFOSRestController
 
             $knowledgeAssignment = new KnowledgeAssignments();
             $knowledgeAssignment->setUserId($user)
-                                    ->setKnowledgeId($knowledge);
+                                ->setKnowledgeId($knowledge);
             
             $em->persist($knowledgeAssignment);
 
@@ -181,7 +207,6 @@ class UserController extends AbstractFOSRestController
         
         $em->persist($laboralSectorAssignment);
     }
-
 
 
      /**
@@ -212,7 +237,7 @@ class UserController extends AbstractFOSRestController
     private function setUserAnswersTestB(EntityManagerInterface $em, $value, $user){
         $user_answers_test_b = new UserAnswersTestB();
         
-        if (count($value) != 3 || $value[0] + $value[1] + $value[2] != 100)
+        if (count($value) != 3 || ($value[0] + $value[1] + $value[2]) != 100)
             return false;
 
         $user_answers_test_b->setPercentAnswerA($value[0]);
@@ -253,6 +278,7 @@ class UserController extends AbstractFOSRestController
     }
 
 
+    
     /**
      * Establece la respuesta de salida
      */
