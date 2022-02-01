@@ -19,11 +19,16 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class OfferController extends AbstractFOSRestController
-{
+
+class OfferController extends AbstractFOSRestController{
+
 
     private $logger; 
-    private $em; 
+    private $em;
+    private $laboralSectorRepository;
+    private $knowledge_repository;
+
+    
     
     public function __construct(LoggerInterface $logger, EntityManagerInterface $em, LaboralSectorRepository $laboralSectorRepository, KnowledgeRepository $knowledge_repository){
         
@@ -33,9 +38,14 @@ class OfferController extends AbstractFOSRestController
         $this->knowledge_repository = $knowledge_repository;
     }
 
+
+
     /**
     * @Rest\Get(path="/offers")
     * @Rest\View(serializerGroups={"offer"},serializerEnableMaxDepthChecks=true)
+    *
+    * Devuelve el listado de ofertas con sus respectivos campos
+    *
     */
     public function getAction(OfferRepository $offerRepository)
     {
@@ -48,10 +58,13 @@ class OfferController extends AbstractFOSRestController
         return $offers;
     }
 
-    // TODO Eliminar todas las variables innecesarias de las definiciones de las funciones
+
+
     /**
      * @Rest\Post(path="/offers")
      * @Rest\View(serializerGroups={"offer"},serializerEnableMaxDepthChecks=true)
+     * 
+     * Recibe la llamada POST para crear una oferta
      */
     public function postAction(Request $request){
 
@@ -60,6 +73,14 @@ class OfferController extends AbstractFOSRestController
     }
 
 
+
+    /**
+     * Crea un usuario con los datos recibidos de la llamada POST postAction
+     *
+     * @param [type] $form
+     * @param [type] $request
+     * @return void
+     */
     private function createOfferFromFormData($form, $request){
 
         $knowledge = $form['knowledge'];
@@ -76,19 +97,20 @@ class OfferController extends AbstractFOSRestController
         if($form->isSubmitted() && $form->isValid()){
             
             if (!empty($laboral_sector))
-                $this->setOfferLaboralSector($this->em, $this->laboralSectorRepository, $laboral_sector, $offer);
+                //$this->setOfferLaboralSector($this->em, $this->laboralSectorRepository, $laboral_sector, $offer);
+                $this->setOfferLaboralSector($laboral_sector, $offer);
                 
             if (!empty($knowledge)){
-                $res = $this->setOfferKnowledge($this->em, $this->knowledge_repository, $knowledge, $offer);
+                $res = $this->setOfferKnowledge($knowledge, $offer);
                 if ($res === false)
                     return $this->sendResponse(400, null, 'Bad knowledges field request');
             }
 
             if (!empty($test_a_criteria))
-                $this->setOfferTestACriteria($this->em, $test_a_criteria, $offer);
+                $this->setOfferTestACriteria($test_a_criteria, $offer);
                 
             if (!empty($test_b_criteria)){
-                $res = $this->setOfferTestBCriteria($this->em, $test_b_criteria, $offer);
+                $res = $this->setOfferTestBCriteria($test_b_criteria, $offer);
                 if ($res === false)
                     return $this->sendResponse(400, null, 'Bad Test B answers field request');
             }
@@ -108,7 +130,13 @@ class OfferController extends AbstractFOSRestController
 
 
 
-   public function createMassiveOffers($offers_data){
+    /**
+     * Carga masiva de ofertas
+     *
+     * @param [type] $offers_data
+     * @return void
+     */
+    public function createMassiveOffers($offers_data){
 
 
         $data = [];
@@ -123,6 +151,12 @@ class OfferController extends AbstractFOSRestController
 
 
 
+    /**
+     * Crea la oferta con los datos recibidos por la funcion de carga masiva "/api/misc/upload"
+     *
+     * @param [type] $offer_data
+     * @return void
+     */
     private function createOfferFromJsonData($offer_data){
         
         $knowledge = $offer_data['knowledge'];
@@ -138,19 +172,19 @@ class OfferController extends AbstractFOSRestController
 
         
         if (!empty($laboral_sector))
-            $this->setOfferLaboralSector($this->em, $this->laboralSectorRepository, $laboral_sector, $offer);
+            $this->setOfferLaboralSector($laboral_sector, $offer);
             
         if (!empty($knowledge)){
-            $res = $this->setOfferKnowledge($this->em, $this->knowledge_repository, $knowledge, $offer);
+            $res = $this->setOfferKnowledge($knowledge, $offer);
             if ($res === false)
                 return 'Bad knowledges field request';
         }
 
         if (!empty($test_a_criteria))
-            $this->setOfferTestACriteria($this->em, $test_a_criteria, $offer);
+            $this->setOfferTestACriteria($test_a_criteria, $offer);
             
         if (!empty($test_b_criteria)){
-            $res = $this->setOfferTestBCriteria($this->em, $test_b_criteria, $offer);
+            $res = $this->setOfferTestBCriteria($test_b_criteria, $offer);
             if ($res === false)
                 return 'Bad Test B answers field request';
         }
@@ -170,13 +204,11 @@ class OfferController extends AbstractFOSRestController
     /**
      * Establecemos laos conocimientos de la oferta
      *
-     * @param EntityManagerInterface $em
-     * @param KnowledgeRepository $knowledge_repository
      * @param [type] $knowledge_names
      * @param [type] $offer
      * @return void
      */ 
-    private function setOfferKnowledge(EntityManagerInterface $em, KnowledgeRepository $knowledge_repository, $knowledge_names, $offer){
+    private function setOfferKnowledge($knowledge_names, $offer){
 
         $knowledge_count = count($knowledge_names);
         if ($knowledge_count < 3 || $knowledge_count > 6)
@@ -186,53 +218,53 @@ class OfferController extends AbstractFOSRestController
          
             $query = ['name' => $offer_knowledge_name];
 
-            $knowledge = $knowledge_repository->findOneBy($query);
+            $knowledge = $this->knowledge_repository->findOneBy($query);
 
             if (!$knowledge){
                 $knowledge = new Knowledge();
                 $knowledge->setName($offer_knowledge_name);
 
-                $em->persist($knowledge);
+                $this->em->persist($knowledge);
             }
 
             $knowledgeOfferAssignment = new KnowledgeOfferAssignments();
             $knowledgeOfferAssignment->setOfferId($offer)
                                      ->setKnowledgeId($knowledge);
             
-            $em->persist($knowledgeOfferAssignment);
+            $this->em->persist($knowledgeOfferAssignment);
         }
     }
+
 
 
     /**
      * Establece el sector laboral de la oferta
      * Si existe se toma el id para crear el nuevo registro, si no, se crea un registro de sector laboral nuevo y se asocia al nuevo registro de sector laboral
      *
-     * @param EntityManagerInterface $em
-     * @param LaboralSectorRepository $laboralSectorRepository
      * @param [type] $laboral_sector_name
      * @param [type] $offer
      * @return void
      */
-    private function setOfferLaboralSector(EntityManagerInterface $em, LaboralSectorRepository $laboralSectorRepository, $laboral_sector_name, $offer){
+    private function setOfferLaboralSector($laboral_sector_name, $offer){
        
         $query = ['name' => $laboral_sector_name];
        
-        $laboral_sector = $laboralSectorRepository->findOneBy($query);
+        $laboral_sector = $this->laboralSectorRepository->findOneBy($query);
 
         if (!$laboral_sector){
             $laboral_sector = new LaboralSector();
             $laboral_sector->setName($laboral_sector_name);
 
-            $em->persist($laboral_sector);
+            $this->em->persist($laboral_sector);
         }
 
         $laboralSectorOfferAssignment = new LaboralSectorOfferAssignments();
         $laboralSectorOfferAssignment->setOfferId($offer)
                                 ->setLaboralSectorId($laboral_sector);
         
-        $em->persist($laboralSectorOfferAssignment);
+        $this->em->persist($laboralSectorOfferAssignment);
     }
+
 
     
     /**
@@ -243,23 +275,23 @@ class OfferController extends AbstractFOSRestController
      * @param [type] $offer
      * @return void
      */
-    private function setOfferTestACriteria(EntityManagerInterface $em, $criteria_value, $offer){
+    private function setOfferTestACriteria($criteria_value, $offer){
         $test_a_criteria = new OfferCriteriaTestA();
         $test_a_criteria->setMinimunPercent($criteria_value);
         $test_a_criteria->setOfferId($offer);
-        $em->persist($test_a_criteria);
+        $this->em->persist($test_a_criteria);
     }
+
 
 
     /**
      * Establece los criterios de la oferta para el test B
      *
-     * @param EntityManagerInterface $em
      * @param [type] $criteria_value
      * @param [type] $offer
      * @return void
      */
-    private function setOfferTestBCriteria(EntityManagerInterface $em, $criteria_values, $offer){
+    private function setOfferTestBCriteria($criteria_values, $offer){
         $test_b_criteria = new OfferCriteriaTestB();
        
         if (count($criteria_values) != 3 || ($criteria_values[0] + $criteria_values[1] + $criteria_values[2]) != 100)
@@ -269,8 +301,9 @@ class OfferController extends AbstractFOSRestController
         $test_b_criteria->setDesiredPercentB($criteria_values[1]);
         $test_b_criteria->setDesiredPercentC($criteria_values[2]);
         $test_b_criteria->setOfferId($offer);
-        $em->persist($test_b_criteria);
+        $this->em->persist($test_b_criteria);
     }
+
 
 
     /**
@@ -295,6 +328,7 @@ class OfferController extends AbstractFOSRestController
         
         $response->send();
     }
+
 
 
     /**

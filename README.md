@@ -92,3 +92,6 @@ Aplico migrations
 --- 
 
 
+
+Explicar 
+    Si existe se toma el id para crear el nuevo registro, si no, se crea un registro de sector laboral nuevo y se asocia al nuevo registro de sector laboral
