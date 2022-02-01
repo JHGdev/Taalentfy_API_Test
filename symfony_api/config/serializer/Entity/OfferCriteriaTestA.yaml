@@ -1,0 +1,6 @@
+App\Entity\OfferCriteriaTestA:
+  attributes:
+    id:
+      groups: ['offer']
+    minimun_percent:
+      groups: ['offer']

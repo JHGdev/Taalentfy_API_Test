@@ -1,0 +1,10 @@
+App\Entity\OfferCriteriaTestB:
+  attributes:
+    id:
+      groups: ['offer']
+    desired_percent_A:
+      groups: ['offer']
+    desired_percent_B:
+      groups: ['offer']
+    desired_percent_C:
+      groups: ['offer']

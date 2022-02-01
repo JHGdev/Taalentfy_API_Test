@@ -1,0 +1,6 @@
+App\Entity\UserAnswersTestA:
+  attributes:
+    id:
+      groups: ['user']
+    total_percent:
+      groups: ['user']

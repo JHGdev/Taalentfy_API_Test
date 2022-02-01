@@ -16,5 +16,9 @@ App\Entity\User:
       groups: ['user']
     yes:
       groups: ['user']
+    userAnswersTestA:
+      groups: ['user']
+    userAnswersTestB:
+      groups: ['user']
 
     

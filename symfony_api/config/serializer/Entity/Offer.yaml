@@ -14,5 +14,8 @@ App\Entity\Offer:
       groups: ['offer']
     laboralSectorOfferAssignments:
       groups: ['offer']
-
+    OfferCriteriaTestA:
+      groups: ['offer']
+    OfferCriteriaTestB:
+      groups: ['offer']
     

@@ -76,4 +76,19 @@ He tenido que hacer consultas en la base de datos
     ALTER TABLE laboral_sector_assignments ADD CONSTRAINT FK_B0A5662FE06A9B8F FOREIGN KEY (laboral_sector_id_id) REFERENCES laboral_sector (id);
     CREATE INDEX IDX_B0A5662FE06A9B8F ON laboral_sector_assignments (laboral_sector_id_id);
 
+
 Lo he agregado al ultimo archivo migrations
+
+
+
+
+
+Agregamos las tablas para las respuestas de los usuarios y las restricciones de las ofertas
+---
+Actualizo migrations
+    bin/console doctrine:migrations:diff
+Aplico migrations
+    bin/console doctrine:migrations:migrate
+--- 
+
+

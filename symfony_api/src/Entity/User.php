@@ -74,6 +74,16 @@ class User
      */
     private $knowledgeAssignments;
 
+    /**
+     * @ORM\OneToOne(targetEntity=UserAnswersTestA::class, mappedBy="user_id", cascade={"persist", "remove"})
+     */
+    private $userAnswersTestA;
+
+    /**
+     * @ORM\OneToOne(targetEntity=UserAnswersTestB::class, mappedBy="user_id", cascade={"persist", "remove"})
+     */
+    private $userAnswersTestB;
+
     public function __construct()
     {
         $this->knowledgeAssignments = new ArrayCollection();
@@ -187,6 +197,40 @@ class User
                 $knowledgeAssignment->setUserId(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getUserAnswersTestA(): ?UserAnswersTestA
+    {
+        return $this->userAnswersTestA;
+    }
+
+    public function setUserAnswersTestA(UserAnswersTestA $userAnswersTestA): self
+    {
+        // set the owning side of the relation if necessary
+        if ($userAnswersTestA->getUserId() !== $this) {
+            $userAnswersTestA->setUserId($this);
+        }
+
+        $this->userAnswersTestA = $userAnswersTestA;
+
+        return $this;
+    }
+
+    public function getUserAnswersTestB(): ?UserAnswersTestB
+    {
+        return $this->userAnswersTestB;
+    }
+
+    public function setUserAnswersTestB(UserAnswersTestB $userAnswersTestB): self
+    {
+        // set the owning side of the relation if necessary
+        if ($userAnswersTestB->getUserId() !== $this) {
+            $userAnswersTestB->setUserId($this);
+        }
+
+        $this->userAnswersTestB = $userAnswersTestB;
 
         return $this;
     }

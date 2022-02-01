@@ -49,6 +49,16 @@ class Offer
      */
     private $knowledgeOfferAssignments;
 
+    /**
+     * @ORM\OneToOne(targetEntity=OfferCriteriaTestA::class, mappedBy="offer_id", cascade={"persist", "remove"})
+     */
+    private $offerCriteriaTestA;
+
+    /**
+     * @ORM\OneToOne(targetEntity=OfferCriteriaTestB::class, mappedBy="offer_id", cascade={"persist", "remove"})
+     */
+    private $offerCriteriaTestB;
+
     public function __construct()
     {
         $this->knowledgeOfferAssignments = new ArrayCollection();
@@ -150,6 +160,40 @@ class Offer
                 $knowledgeOfferAssignment->setOfferId(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getOfferCriteriaTestA(): ?OfferCriteriaTestA
+    {
+        return $this->offerCriteriaTestA;
+    }
+
+    public function setOfferCriteriaTestA(OfferCriteriaTestA $offerCriteriaTestA): self
+    {
+        // set the owning side of the relation if necessary
+        if ($offerCriteriaTestA->getOfferId() !== $this) {
+            $offerCriteriaTestA->setOfferId($this);
+        }
+
+        $this->offerCriteriaTestA = $offerCriteriaTestA;
+
+        return $this;
+    }
+
+    public function getOfferCriteriaTestB(): ?OfferCriteriaTestB
+    {
+        return $this->offerCriteriaTestB;
+    }
+
+    public function setOfferCriteriaTestB(OfferCriteriaTestB $offerCriteriaTestB): self
+    {
+        // set the owning side of the relation if necessary
+        if ($offerCriteriaTestB->getOfferId() !== $this) {
+            $offerCriteriaTestB->setOfferId($this);
+        }
+
+        $this->offerCriteriaTestB = $offerCriteriaTestB;
 
         return $this;
     }

@@ -1,0 +1,10 @@
+App\Entity\UserAnswersTestB:
+  attributes:
+    id:
+      groups: ['user']
+    percent_answer_a:
+      groups: ['user']
+    percent_answer_b:
+      groups: ['user']
+    percent_answer_c:
+      groups: ['user']

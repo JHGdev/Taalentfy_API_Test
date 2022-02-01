@@ -6,6 +6,8 @@ use App\Entity\KnowledgeAssignments;
 use App\Entity\LaboralSector;
 use App\Entity\LaboralSectorAssignments;
 use App\Entity\User;
+use App\Entity\UserAnswersTestA;
+use App\Entity\UserAnswersTestB;
 use App\Form\Type\UserFormType;
 use App\Repository\KnowledgeRepository;
 use App\Repository\LaboralSectorRepository;
@@ -15,6 +17,7 @@ use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends AbstractFOSRestController
 {
@@ -49,8 +52,9 @@ class UserController extends AbstractFOSRestController
         $form = $request->get('user_form', '');
         $knowledge = $form['knowledge'];
         $laboral_sector = $form['laboral_sector'];
+        $user_answers_test_a = $form['user_answers_test_a'];
+        $user_answers_test_b = $form['user_answers_test_b'];
 
-        
         $user = new User;
         $form = $this->createForm(UserFormType::class, $user);
         
@@ -65,18 +69,22 @@ class UserController extends AbstractFOSRestController
             
             if (!empty($knowledge))
                 $this->setUserKnowledge($em, $knowledge_repository, $knowledge, $user);
+
+            if (!empty($user_answers_test_a))
+                $this->setUserAnswerTestA($em, $user_answers_test_a, $user);
+
+            if (!empty($user_answers_test_b))
+                if (!$this->setUserAnswersTestB($em, $user_answers_test_b, $user))
+                    return $this->sendResponse(400, null, 'Bad Test B answers field request');
             
             $actual_date = new \DateTime('now');
             $user->setCreated($actual_date->getTimestamp());
 
+            $this->logger->info('User created');
             $em->persist($user);
             $em->flush();
-            
-            return $user;
 
-            $this->logger->info('User created');
-
-            return $user;
+            return $this->sendResponse(201, null, 'User created');
         }
 
         return $form;
@@ -131,9 +139,7 @@ class UserController extends AbstractFOSRestController
 
     private function setUserKnowledge(EntityManagerInterface $em, KnowledgeRepository $knowledge_repository, $knowledge_names, $user){
     
-        $knowledge_array = explode(',', $knowledge_names);
-
-        foreach($knowledge_array as $user_knowledge_name){
+        foreach($knowledge_names as $user_knowledge_name){
          
             $query = ['name' => $user_knowledge_name];
 
@@ -177,6 +183,47 @@ class UserController extends AbstractFOSRestController
     }
 
 
+
+     /**
+     * Establece la respuesta del usuario para el test A
+     *
+     * @param EntityManagerInterface $em
+     * @param [type] $value
+     * @param [type] $offer
+     * @return void
+     */
+    private function setUserAnswerTestA(EntityManagerInterface $em, $value, $user){
+        $user_answers_test_a = new UserAnswersTestA();
+        $user_answers_test_a->setTotalPercent($value);
+        $user_answers_test_a->setUserId($user);
+        $em->persist($user_answers_test_a);
+    }
+
+
+
+    /**
+     * Establece la respuesta del usuario para el test A
+     *
+     * @param EntityManagerInterface $em
+     * @param [type] $value
+     * @param [type] $offer
+     * @return void
+     */
+    private function setUserAnswersTestB(EntityManagerInterface $em, $value, $user){
+        $user_answers_test_b = new UserAnswersTestB();
+        
+        if (count($value) != 3 || $value[0] + $value[1] + $value[2] != 100)
+            return false;
+
+        $user_answers_test_b->setPercentAnswerA($value[0]);
+        $user_answers_test_b->setPercentAnswerB($value[1]);
+        $user_answers_test_b->setPercentAnswerC($value[2]);
+        $user_answers_test_b->setUserId($user);
+        $em->persist($user_answers_test_b);
+    }
+
+
+    
     /**
      * Chequea que no haya valores nulos 
      *
@@ -204,5 +251,30 @@ class UserController extends AbstractFOSRestController
 
         return $error_messages;
     }
+
+
+    /**
+     * Establece la respuesta de salida
+     */
+    private function sendResponse($status_code, $data, $messages = null){
+
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json');
+       
+        
+        $response_data = [];
+        $response_data['code'] = $status_code;
+        if ($data != null) 
+            $response_data['data'] = $data;
+        if ($messages != null) 
+            $response_data['data'] = $messages;
+
+
+        $response->setStatusCode($status_code);
+        $response->setContent(json_encode($response_data));
+        
+        $response->send();
+    }
+
 
 }
