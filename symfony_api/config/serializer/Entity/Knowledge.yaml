@@ -1,6 +1,6 @@
 App\Entity\Knowledge:
   attributes:
     id:
-      groups: ['user', 'offer']
+      groups: ['user', 'offer', 'misc']
     name:
-      groups: ['user', 'offer']
+      groups: ['user', 'offer', 'misc']

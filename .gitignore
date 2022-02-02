@@ -61,3 +61,4 @@ symfony_api/var/log/*
 
 # Docker Logs
 .docker/build/logs/
+symfony_api/public/test/vendor/

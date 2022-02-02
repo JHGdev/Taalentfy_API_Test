@@ -26,16 +26,18 @@ class UserController extends AbstractFOSRestController{
     private $logger; 
     private $em; 
     private $laboralSectorRepository; 
-    private $knowledge_repository; 
+    private $knowledgeRepository; 
+    private $userRepository; 
 
 
     
-    public function __construct(LoggerInterface $logger, EntityManagerInterface $em, LaboralSectorRepository $laboralSectorRepository, KnowledgeRepository $knowledge_repository){
+    public function __construct(LoggerInterface $logger, EntityManagerInterface $em, LaboralSectorRepository $laboralSectorRepository, KnowledgeRepository $knowledgeRepository, UserRepository $userRepository){
         
         $this->logger = $logger;
         $this->em = $em;
         $this->laboralSectorRepository = $laboralSectorRepository;
-        $this->knowledge_repository = $knowledge_repository;
+        $this->knowledgeRepository = $knowledgeRepository;
+        $this->userRepository = $userRepository;
     }
 
 
@@ -46,10 +48,10 @@ class UserController extends AbstractFOSRestController{
     *
     * Devuelve el listado de usuarios con sus campos
     */
-    public function getAction(UserRepository $userRepository)
+    public function getAction()
     {
         $this->logger->info('Users listed');
-        $users = $userRepository->findAll();
+        $users = $this->userRepository->findAll();
 
         if (empty($users))
             return $this->sendResponse(204, null, null);
@@ -83,6 +85,14 @@ class UserController extends AbstractFOSRestController{
      * @return void
      */
     private function createUserFromFormData($form, Request $request){
+
+        $email = $form['email'];
+        $query = ['email' => $email];
+        $user = $this->userRepository->findOneBy($query);
+
+        if ($user)
+            return $this->sendResponse(400, null, 'User already exists');
+
 
         $knowledge = $form['knowledge'];
         $laboral_sector = $form['laboral_sector'];
@@ -141,7 +151,7 @@ class UserController extends AbstractFOSRestController{
                         'result' => $this->createUserFromJsonData($user_data)
             ];
         }
-        return $this->sendResponse(200, 'Users imported', $data);
+        return $this->sendResponse(200, 'OK', $data);
     }
 
 
@@ -154,8 +164,15 @@ class UserController extends AbstractFOSRestController{
      */
     private function createUserFromJsonData($user_data){
 
-        $user = new User;
+        $email = $user_data['email'];
+        $query = ['email' => $email];
+        $user = $this->userRepository->findOneBy($query);
 
+        if ($user)
+            return 'User already exists';
+
+
+        $user = new User;
         $user->setEmail($user_data['email']);
         $user->setFirstname($user_data['firstname']);
         $user->setLastname($user_data['lastname']);
@@ -202,7 +219,7 @@ class UserController extends AbstractFOSRestController{
          
             $query = ['name' => $user_knowledge_name];
 
-            $knowledge = $this->knowledge_repository->findOneBy($query);
+            $knowledge = $this->knowledgeRepository->findOneBy($query);
 
             if (!$knowledge){
                 $knowledge = new Knowledge();
@@ -308,7 +325,7 @@ class UserController extends AbstractFOSRestController{
         if ($data != null) 
             $response_data['data'] = $data;
         if ($messages != null) 
-            $response_data['data'] = $messages;
+            $response_data['message'] = $messages;
 
 
         $response->setStatusCode($status_code);

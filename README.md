@@ -95,3 +95,17 @@ Aplico migrations
 
 Explicar 
     Si existe se toma el id para crear el nuevo registro, si no, se crea un registro de sector laboral nuevo y se asocia al nuevo registro de sector laboral
+
+
+Desactivo campos de restricciones, conocimientos y sector laboral en las recomendaciones
+
+
+Configuracion de campos que se visualizan en cada controlador
+    symfony_api/config/serializer/Entity
+
+
+    bin/console doctrine:migrations:diff
+    bin/console doctrine:migrations:migrate
+
+    https://github.com/fzaninotto/Faker
+    #composer require fzaninotto/faker

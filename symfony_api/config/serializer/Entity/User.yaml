@@ -3,13 +3,13 @@ App\Entity\User:
     id:
       groups: ['user']
     email:
-      groups: ['user']
+      groups: ['user', 'misc']
     firstname:
-      groups: ['user']
+      groups: ['user', 'misc']
     lastname:
-      groups: ['user']
+      groups: ['user', 'misc']
     birth_date:
-      groups: ['user']
+      groups: ['user', 'misc']
     created:
       groups: ['user']
     knowledgeAssignments:

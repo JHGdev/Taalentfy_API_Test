@@ -26,16 +26,18 @@ class OfferController extends AbstractFOSRestController{
     private $logger; 
     private $em;
     private $laboralSectorRepository;
-    private $knowledge_repository;
+    private $knowledgeRepository;
+    private $offerRepository;
 
     
     
-    public function __construct(LoggerInterface $logger, EntityManagerInterface $em, LaboralSectorRepository $laboralSectorRepository, KnowledgeRepository $knowledge_repository){
+    public function __construct(LoggerInterface $logger, EntityManagerInterface $em, LaboralSectorRepository $laboralSectorRepository, KnowledgeRepository $knowledgeRepository, OfferRepository $offerRepository){
         
         $this->logger = $logger;
         $this->em = $em;
         $this->laboralSectorRepository = $laboralSectorRepository;
-        $this->knowledge_repository = $knowledge_repository;
+        $this->offerRepository = $offerRepository;
+        $this->knowledgeRepository = $knowledgeRepository;
     }
 
 
@@ -47,10 +49,10 @@ class OfferController extends AbstractFOSRestController{
     * Devuelve el listado de ofertas con sus respectivos campos
     *
     */
-    public function getAction(OfferRepository $offerRepository)
+    public function getAction()
     {
         $this->logger->info('Users listed');
-        $offers = $offerRepository->findAll();
+        $offers = $this->offerRepository->findAll();
         
         if (empty($offers))
             return $this->sendResponse(204, null, null);
@@ -82,6 +84,15 @@ class OfferController extends AbstractFOSRestController{
      * @return void
      */
     private function createOfferFromFormData($form, $request){
+
+        $title = $form['title'];
+        $query = ['title' => $title];
+        $offer = $this->offerRepository->findOneBy($query);
+
+        if ($offer)
+            return $this->sendResponse(400, null, 'Offer already exists');
+
+
 
         $knowledge = $form['knowledge'];
         $laboral_sector = $form['laboral_sector'];
@@ -146,7 +157,7 @@ class OfferController extends AbstractFOSRestController{
                         'result' => $this->createOfferFromJsonData($offer_data)
             ];
         }
-        return $this->sendResponse(200, 'Offers imported', $data);
+        return $this->sendResponse(200, 'OK', $data);
     }
 
 
@@ -158,6 +169,14 @@ class OfferController extends AbstractFOSRestController{
      * @return void
      */
     private function createOfferFromJsonData($offer_data){
+
+        $title = $offer_data['title'];
+        $query = ['title' => $title];
+        $offer = $this->offerRepository->findOneBy($query);
+
+        if ($offer)
+            return 'Offer already exits';
+
         
         $knowledge = $offer_data['knowledge'];
         $laboral_sector = $offer_data['laboral_sector'];
@@ -165,7 +184,7 @@ class OfferController extends AbstractFOSRestController{
         $test_b_criteria = $offer_data['test_b_criteria'];
         
         $offer = new Offer;
-        $offer->setTitle($offer_data['title']);
+        $offer->setTitle($title);
         $offer->setDescription($offer_data['description']);
         $offer->setIncorporationDate($offer_data['incorporation_date']);
         $offer->setStatus($offer_data['status']);
@@ -218,7 +237,7 @@ class OfferController extends AbstractFOSRestController{
          
             $query = ['name' => $offer_knowledge_name];
 
-            $knowledge = $this->knowledge_repository->findOneBy($query);
+            $knowledge = $this->knowledgeRepository->findOneBy($query);
 
             if (!$knowledge){
                 $knowledge = new Knowledge();
@@ -307,7 +326,7 @@ class OfferController extends AbstractFOSRestController{
 
 
     /**
-     * Establece la respuesta de error 
+     * Establece la respuesta de salida de las llamadas
      */
     private function sendResponse($status_code, $data, $messages = null){
 
@@ -320,7 +339,7 @@ class OfferController extends AbstractFOSRestController{
         if ($data != null) 
             $response_data['data'] = $data;
         if ($messages != null) 
-            $response_data['data'] = $messages;
+            $response_data['message'] = $messages;
 
 
         $response->setStatusCode($status_code);

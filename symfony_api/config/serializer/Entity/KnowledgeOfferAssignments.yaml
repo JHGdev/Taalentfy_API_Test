@@ -1,8 +1,8 @@
 App\Entity\KnowledgeOfferAssignments:
   attributes:
     id:
-      groups: ['offer']
+      groups: ['offer', 'misc']
     knowledge_id:
-      groups: ['offer']
+      groups: ['offer', 'misc']
 
     
