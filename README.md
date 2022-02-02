@@ -109,3 +109,6 @@ Configuracion de campos que se visualizan en cada controlador
 
     https://github.com/fzaninotto/Faker
     #composer require fzaninotto/faker
+     ->  http://localhost:8001/test/
+
+
