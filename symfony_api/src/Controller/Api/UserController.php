@@ -71,6 +71,7 @@ class UserController extends AbstractFOSRestController{
         
         $form = $request->get('user_form', '');
         
+        // return $form;
         return $this->createUserFromFormData($form, $request);
 
     }
@@ -94,10 +95,10 @@ class UserController extends AbstractFOSRestController{
             return $this->sendResponse(400, null, 'User already exists');
 
 
-        $knowledge = $form['knowledge'];
-        $laboral_sector = $form['laboral_sector'];
-        $user_answers_test_a = $form['user_answers_test_a'];
-        $user_answers_test_b = $form['user_answers_test_b'];
+        $knowledge =           isset($form['knowledge']) ? $form['knowledge'] : null;
+        $laboral_sector =      isset($form['laboral_sector']) ? $form['laboral_sector'] : null;
+        $user_answers_test_a = isset($form['user_answers_test_a']) ? $form['user_answers_test_a'] : null;
+        $user_answers_test_b = isset($form['user_answers_test_b']) ? $form['user_answers_test_b'] : null;
 
         $user = new User;
         $form = $this->createForm(UserFormType::class, $user);
